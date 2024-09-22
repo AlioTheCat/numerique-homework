@@ -3,17 +3,26 @@
 # jupyter:
 #   jupytext:
 #     cell_metadata_json: true
+#     notebook_metadata_filter: language_info,nbhosting
 #     text_representation:
 #       extension: .py
 #       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.16.4
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 #   language_info:
+#     codemirror_mode:
+#       name: ipython
+#       version: 3
+#     file_extension: .py
+#     mimetype: text/x-python
 #     name: python
 #     nbconvert_exporter: python
 #     pygments_lexer: ipython3
+#     version: 3.12.4
 #   nbhosting:
 #     title: TP sur le tri d'une dataframe
 # ---
@@ -41,12 +50,15 @@ HTML(filename="_static/style.html")
 
 # %%
 # votre code
+import pandas as pd
+import numpy as np
 
 # %% [markdown]
 # 2. importez la librairie `matplotlib.pyplot` avec le nom `plt` 
 
 # %%
 # votre code
+import matplotlib.pyplot as plt
 
 # %% [markdown]
 # 3. lors de la lecture du fichier de données `data/titanic.csv`  
@@ -58,6 +70,9 @@ HTML(filename="_static/style.html")
 # %%
 # votre code
 
+df = pd.read_csv("data/titanic.csv", index_col=["PassengerId"], usecols=["PassengerId", "Survived", "Pclass", "Name", "Sex", "Age", "Fare"])
+df
+
 # %% [markdown]
 # 4. en utilisant la méthode `pd.DataFrame.plot`  
 #    plottez la dataframe (pas la série) réduite à la colonne des ages  
@@ -68,6 +83,8 @@ HTML(filename="_static/style.html")
 
 # %%
 # votre code
+
+df["Age"].plot(style="rv", ylabel="Age")
 
 # %% [markdown]
 # 5. pour commencer on va trier - i.e. mettre les lignes de la  dataframe suivant l'ordre d'une colonne    
@@ -81,6 +98,8 @@ HTML(filename="_static/style.html")
 
 # %%
 # votre code
+new_df = df.sort_values(by=["Age"])
+new_df.head(4)
 
 # %% [markdown]
 # 6. 1. plottez la colonne des ages de la dataframe triée  
@@ -89,6 +108,7 @@ HTML(filename="_static/style.html")
 
 # %%
 # votre code
+new_df["Age"].plot(style="b", ylabel="Age")
 
 # %% [markdown]
 # 7. 1. la logique de `df.plot()` consiste
@@ -106,6 +126,8 @@ HTML(filename="_static/style.html")
 
 # %%
 # votre code
+new_df.reset_index(inplace=True)
+new_df["Age"].plot(style="b", ylabel="Age")
 
 # %% [markdown]
 # ## tri des lignes *égales* au sens d'un premier critère d'une dataframe
@@ -115,6 +137,8 @@ HTML(filename="_static/style.html")
 
 # %%
 # votre code
+df = pd.read_csv("data/titanic.csv", index_col=["PassengerId"], usecols=["PassengerId", "Survived", "Pclass", "Name", "Sex", "Age", "Fare"])
+df
 
 # %% [markdown]
 # 2. utilisez `df.sort_values()` pour trier la dataframe suivant la colonne (`'Pclass'`)  
@@ -123,6 +147,8 @@ HTML(filename="_static/style.html")
 
 # %%
 # votre code
+df.sort_values(by = ["Pclass", "Age"], inplace = True)
+df
 
 # %% [markdown]
 # 3. sélectionnez, dans la nouvelle dataframe, la sous-dataframe dont les ages ne sont pas définis  
@@ -130,12 +156,15 @@ HTML(filename="_static/style.html")
 
 # %%
 # votre code
+dfna = df[df["Age"].isna()]
+dfna
 
 # %% [markdown]
 # 4. combien manque-il d'ages ?
 
 # %%
 # votre code
+( df["Age"].isna() ).sum()
 
 # %% [markdown]
 # 5. où sont placés ces passagers dans la data-frame globale triée ?  
@@ -143,6 +172,8 @@ HTML(filename="_static/style.html")
 
 # %%
 # votre code
+# Ils sont placés dans la tail
+df.tail()
 
 # %% [markdown]
 # 6. trouvez le paramètre de `sort_values()`  
@@ -150,6 +181,8 @@ HTML(filename="_static/style.html")
 
 # %%
 # votre code
+new_df2 = df.sort_values(by = ["Age"], na_position = "first")
+new_df2
 
 # %% [markdown]
 # 7. produire une nouvelle dataframe en ne gardant que les ages connus,
@@ -169,6 +202,10 @@ HTML(filename="_static/style.html")
 
 # %% {"tags": ["level_intermediate"]}
 # votre code
+df = pd.read_csv("data/titanic.csv", index_col=["PassengerId"], usecols=["PassengerId", "Survived", "Pclass", "Name", "Sex", "Age", "Fare"])
+
+df.sort_index(inplace=True)
+df
 
 # %% [markdown]
 # ***
