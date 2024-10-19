@@ -166,7 +166,7 @@ leases["duration"] = leases.end - leases.beg
 leases["when_month"] = leases.beg.dt.to_period('M')
 leases["when_week"] = leases.beg.dt.to_period('W')
 leases["when_year"] = leases.beg.dt.to_period('Y')
-leases_groups = leases.groupby("when_month")["duration"].sum()
+leases_groups = leases.groupby("when_month")[["duration"]].sum()
 leases_groups.plot.bar(y="when_month")
 
 # %% [markdown]
@@ -215,14 +215,14 @@ SPACES = {
 # your code
 
 def convert_timedelta_to_hours(timedelta):
-    return (timedelta.seconds+3599) // 3600
+    return 24 * timedelta.days + ( (timedelta.seconds+3599) // 3600)
 
 # %%
 # test it
 
 # if an hour has started even by one second, it is counted
 # seconds, hours
-test_cases = ( (0, 0), (1, 1), (3600, 1), (3601, 2), (7199, 2), (7200, 2), (7200, 3))
+test_cases = ( (0, 0), (1, 1), (3600, 1), (3601, 2), (7199, 2), (7200, 2), (7201, 3))
 
 def test_convert_timedelta_to_hours():
     for seconds, exp in test_cases:
@@ -241,9 +241,8 @@ test_convert_timedelta_to_hours()
 
 # %%
 # your code
-leases["when"] = leases.beg.dt.to_period('M')
 leases["duration"] = leases["duration"].apply(convert_timedelta_to_hours)
-leases_groups = leases.groupby("when")["duration"].sum()
+leases_groups = leases.resample("M")[["duration"]].sum()
 leases_groups.plot.bar(y="when")
 
 # %% [markdown]
