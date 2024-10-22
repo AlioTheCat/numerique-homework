@@ -123,6 +123,8 @@ mandelbrot(1000, 1000)
 # à vous de jouer
 # je vous laisse définir la signature de votre fonction
 
+#Version alternative -> on utilise les complexes
+
 def mandelbrot2(h, w, window, MAX):
     if len(window) == 4 :
         xmin, xmax, ymin, ymax = window
@@ -133,20 +135,17 @@ def mandelbrot2(h, w, window, MAX):
         window = [xmin, xmax, ymin, ymax]
     x = np.linspace(xmin, xmax, h)
     y = np.linspace(ymin, ymax, w)
-    grid = np.array(np.meshgrid(x,y)).T #En transposant on inverse l'ordre des axes et on obtient le produit cartésien.
+    numbs = np.array(np.meshgrid(x,y)).T #En transposant on inverse l'ordre des axes et on obtient le produit cartésien.
+    grid = numbs[:,:,0] + 1j*numbs[:,:,1]
     
-    diverge = np.array([[MAX for _ in range(w)] for _ in range(h)]) #On initialise à MAX -> La zone dont l'éventuelle "divergence" est la plus lente de toute la fenêtre
+    diverge = np.array([[0 for _ in range(w)] for _ in range(h)]) #On initialise à 0 -> La zone bornée est à MAX
     grid0 = grid.copy()
     
     for n in range(1, MAX+1):
-        grid[:,:,0], grid[:,:,1] = carre(grid[:,:,0], grid[:,:,1])
-        grid = grid + grid0
-        for i in range(h):
-            for j in range(w):
-                if mod_2(grid[i,j,:]) > 4 : #module au carré > 4 <=> module > 2
-                    grid[i,j] = [0,0] #On reborne la suite pour éviter de la faire diverger pour de vrai.
-                    if diverge[i,j]==MAX :
-                        diverge[i, j] = n
+        mask_ndvg = (np.abs(grid) <= 4) #On va faire les calculs uniquement sur la zone non divergente.
+        grid[ mask_ndvg ] = np.square(grid[ mask_ndvg ]) + grid0 [ mask_ndvg ]
+        diverge[ mask_ndvg ] = diverge[ mask_ndvg ] + 1
+        grid[ mask_ndvg ]
     plt.imshow(diverge.T, extent = window) #On prend la transposée de diverge, car le premier axe est vertical sur l'image.
     plt.colorbar()
     plt.show()
@@ -157,7 +156,7 @@ def mandelbrot2(h, w, window, MAX):
 ```{code-cell} ipython3
 # test #1
 
-mandelbrot2(500, 500, MAX = 10, window=[-3, 1.2])
+mandelbrot2(500, 500, MAX = 15, window=[-2.3, 0.8])
 ```
 
 ### Mandelbrot est un ensemble fractal, pourquoi pas zoomer ?
@@ -169,7 +168,7 @@ mandelbrot2(1000, 1000, MAX = 20, window=[-2, -0.7])
 
 ```{image} media/more.png
 :width: 400px
-:align: right
+:align: center
 ```
 
 ```{code-cell} ipython3
@@ -178,4 +177,11 @@ mandelbrot2(1000, 1000, MAX = 20, window=[-2, -0.7])
 mandelbrot2(1000, 1000, MAX = 20, window=[-1.66, -1.22])
 ```
 
-----
+```{image} media/more.png
+:width: 600px
+:align: center
+```
+
+```{code-cell} ipython3
+mandelbrot2(2000, 2000, MAX = 30, window=[-1.55, -1.33])
+```
