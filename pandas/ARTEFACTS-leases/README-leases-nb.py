@@ -162,12 +162,13 @@ total_reservation_time, avg_ratio
 
 # %%
 # your code
-leases["duration"] = leases.end - leases.beg
-leases["when_month"] = leases.beg.dt.to_period('M')
-leases["when_week"] = leases.beg.dt.to_period('W')
-leases["when_year"] = leases.beg.dt.to_period('Y')
-leases_groups = leases.groupby("when_month")[["duration"]].sum()
-leases_groups.plot.bar(y="when_month")
+#leases["duration"] = leases.end - leases.beg
+leasesW = leases.resample('W', on="beg").size()
+leasesM = leases.resample("M", on="beg").size()
+leasesY = leases.resample("Y", on="beg").size()
+leasesW.index = leasesW.index.strftime("%d-%m-%y")
+leasesM.index = leasesM.index.strftime("%d-%m-%y")
+leasesY.index = leasesY.index.strftime("%d-%m-%y")
 
 # %% [markdown]
 # ### improve the title and bottom ticks
@@ -189,22 +190,38 @@ leases_groups.plot.bar(y="when_month")
 # ````
 
 # %%
-# let's say as arule of thumb
+# let's say as a rule of thumb
 LEGEND = {
     'W': "week",
-    'M': "month",
-    'Y': "year",
+    'ME': "month",
+    'YE': "year",
 }
 
 SPACES = {
     'W': 12,   # in the per-week visu, show one tick every 12 - so about one every 3 months
-    'M': 3,    # one every 3 months
-    'Y': 1,    # on all years
+    'ME': 3,    # one every 3 months
+    'YE': 1,    # on all years
 }
 
 
 # %%
 # your code
+
+def plot(by="W") : #by <- "W", "M" ou "Y"
+    leases_groups = leases.resample(by, on="beg").size()
+
+    leases_groups.index = leases_groups.index.strftime("%d-%m-%y")
+    
+    ax = leases_groups.plot.bar()
+    ax.set_xticks(range(0, len(leases_groups), SPACES[by]) )
+    
+    plt.xlabel(LEGEND[by])
+    plt.title(f"Reservation times by {LEGEND[by]}")
+    
+    plt.show()
+
+plot("W")
+
 
 # %% [markdown]
 # ### a function to convert to hours
@@ -215,7 +232,7 @@ SPACES = {
 # your code
 
 def convert_timedelta_to_hours(timedelta):
-    return 24 * timedelta.days + ( (timedelta.seconds+3599) // 3600)
+    return ( (timedelta.total_seconds()+3599) // 3600)
 
 # %%
 # test it
@@ -232,6 +249,7 @@ def test_convert_timedelta_to_hours():
 
 test_convert_timedelta_to_hours()
 
+
 # %% [markdown]
 # ### use it to display totals in hours
 #
@@ -241,9 +259,21 @@ test_convert_timedelta_to_hours()
 
 # %%
 # your code
-leases["duration"] = leases["duration"].apply(convert_timedelta_to_hours)
-leases_groups = leases.resample("M")[["duration"]].sum()
-leases_groups.plot.bar(y="when")
+def better_plot(by="W", df=leases) : #by <- "W", "M" ou "Y"
+    leases_groups = df.resample(by, on="beg").size().apply(convert_timedelta_to_hours)
+
+    leases_groups.index = leases_groups.index.strftime("%d-%m-%y")
+    
+    ax = leases_groups.plot.bar()
+    ax.set_xticks(range(0, len(leases_groups), SPACES[by]) )
+    
+    plt.xlabel(LEGEND[by])
+    plt.ylabel("Timedelta (hours)")
+    plt.title(f"Reservation times by {LEGEND[by]}")
+    
+    plt.show()
+
+plot("W")
 
 # %% [markdown]
 # ## grouping by time and by region
@@ -274,9 +304,9 @@ countries.region.value_counts()
 
 # %%
 # your code
-leases2 = pd.merge(leases, countries, left_on="country", right_on="name")
-leases_groups2 = leases2.groupby(by=["when", "region"])[["duration"]].sum().unstack()
-leases_groups2.plot.bar(stacked=True)
+
+leases2 = pd.merge(leases, countries, left_on="country", right_on="name").drop(["name","country"], axis=1)
+
 
 # %% [markdown]
 # (label-sample-results)=
@@ -294,3 +324,23 @@ leases_groups2.plot.bar(stacked=True)
 
 # %%
 # your code
+def stacked_plot(by="W", df=leases2) : #by <- "W", "M" ou "Y"
+    groups = df.groupby("region")
+    
+    finaldf = pd.concat([subdf.resample(by, on="beg").size().rename(group) for group, subdf in groups], axis=1)
+    finaldf.index = finaldf.index.strftime("%d-%m-%y")
+    
+    ax = finaldf.plot(kind="bar", stacked=True)
+    ax.set_xticks(range(0, len(finaldf), SPACES[by]) )
+    
+    plt.xlabel(LEGEND[by])
+    plt.ylabel("Timedelta (hours)")
+    plt.title(f"Reservation times by {LEGEND[by]}")
+    
+    plt.show()
+
+stacked_plot("W")
+stacked_plot("ME")
+stacked_plot("YE")
+
+# %%
